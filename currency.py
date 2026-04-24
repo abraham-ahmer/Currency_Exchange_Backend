@@ -13,6 +13,11 @@ from sqlalchemy import text
 from datetime import date
 
 from rate_limit import limiter
+import os 
+from dotenv import load_dotenv
+
+load_dotenv()
+
 
 router = APIRouter(tags=["Currency Exchange Activity"], prefix="/currency")
 
@@ -23,7 +28,7 @@ async def Convert_Currency(request: Request, content:CurrencyConvert):
     if content.amount <=0:
         raise ValueError("amount must be 1 or greater.")
     
-    key = "e6f19e26e39a390d69001453"
+    key = os.getenv("CURRENCY_API_KEY")
     url = f"https://v6.exchangerate-api.com/v6/{key}/pair/{content.base_currency}/{content.target_currency}/{content.amount}" # Exchange Rate API
     response = requests.get(url)
 
@@ -48,7 +53,7 @@ async def Convert_Currency(request: Request, content:CurrencyConvert):
 @router.post("/live_currency_exchange")
 @limiter.limit("10/minute")
 def check_live_currency(request: Request, currency:CurrencyLive):
-    key = "e6f19e26e39a390d69001453"
+    key = os.getenv("CURRENCY_API_KEY")
     url = f"https://v6.exchangerate-api.com/v6/{key}/latest/{currency.base_currency}"
     response = requests.get(url)
 
@@ -69,7 +74,8 @@ def check_live_currency(request: Request, currency:CurrencyLive):
 @router.post("/historical_currency_data", response_model=CurrencyResponse)
 @limiter.limit("2/minute")
 def historical_data(request: Request, content:CurrencyHistoric, db:Session = Depends(get_db), uc:User = Depends(create_access)):
-    key = "d0c33bde729f4c66ff846537c729d3b0"
+    key = os.getenv("CURRENCY_API_KEY_FOR_HISTORIC")
+    
     url = f"https://api.exchangerate.host/convert?from={content.base_currency}&to={content.target_currency}&amount={content.amount}&date={content.historical_date}&access_key={key}" # exchangeratehost
 
     if (content.historical_date > date.today()):
