@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_url = os.getenv("DATABASE_URL")
+db_url = os.getenv("DATABASE_URL", pool_pre_pring=True, pool_recycle=300) # Checks if connection is alive before using it and refreshes it every 5 mnt.
 if not db_url:
     raise RuntimeError("DATABASE_URL is not set.")
 
