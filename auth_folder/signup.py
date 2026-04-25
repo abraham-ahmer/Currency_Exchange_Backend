@@ -33,6 +33,10 @@ def signup(uc: UserCreate, background_tasks: BackgroundTasks, db: Session = Depe
     # Generate OTP
     otp = str(randint(100000, 999999))
 
+    success = send_otp_email(uc.email, otp)
+    if not success:
+        raise HTTPException(status_code=500, detail="Failed to send OTP email")
+
     # Schedule OTP email as background task
     background_tasks.add_task(send_otp_email, uc.email, otp)
     
