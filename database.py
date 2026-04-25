@@ -5,11 +5,11 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-db_url = os.getenv("DATABASE_URL", pool_pre_pring=True, pool_recycle=300) # Checks if connection is alive before using it and refreshes it every 5 mnt.
+db_url = os.getenv("DATABASE_URL") 
 if not db_url:
     raise RuntimeError("DATABASE_URL is not set.")
 
-engine = create_engine(db_url)
+engine = create_engine(db_url, pool_pre_pring=True, pool_recycle=300) # Checks if connection is alive before using it and refreshes it every 5 mnt.
 
 SessionLocal = sessionmaker(autoflush=False, autocommit=False, bind=engine)
 
