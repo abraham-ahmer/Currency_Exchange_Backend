@@ -16,7 +16,7 @@ router = APIRouter(tags=["Signup"])
 otp_store = {}
 
 @router.post("/signup")
-def signup(uc: UserCreate, db: Session = Depends(get_db), background_tasks: BackgroundTasks = None):
+def signup(uc: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Step 1: User submits email and password. Validates email format, generates OTP, sends to inbox. """
     # Validate email format
     try:
@@ -46,7 +46,6 @@ def signup(uc: UserCreate, db: Session = Depends(get_db), background_tasks: Back
     
     return {
         "message": "OTP sent to your email. Check your inbox",
-        "otp_for_demo": otp  # Remove in production!
     }
 
 
