@@ -1,34 +1,16 @@
-import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
-from email.utils import formataddr
 import os
+import requests
 from dotenv import load_dotenv
 
 load_dotenv()
 
-# Email Configuration
-SMTP_SERVER = os.getenv("SMTP_SERVER", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", 587))
-SENDER_EMAIL = os.getenv("SENDER_EMAIL", "your-email@gmail.com")
-SENDER_PASSWORD = os.getenv("SENDER_PASSWORD", "your-app-password")
-SENDER_NAME = os.getenv("SENDER_NAME", "Ahmer")
-
-
+BREVO_API_KEY = os.getenv("BREVO_API_KEY")
+SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+SENDER_NAME = os.getenv("SENDER_NAME")
 
 def send_otp_email(recipient_email: str, otp: str) -> bool:
-    """
-    Send OTP code to user's email.
-    
-    For Gmail: Use App Password (not regular password)
-    For Brevo: SMTP server is smtp-relay.brevo.com, port 587
-    """
+    """ Send OTP using Brevo API (works on Render)."""
     try:
-        msg = MIMEMultipart()
-        msg["From"] = formataddr((SENDER_NAME, SENDER_EMAIL))
-        msg["To"] = recipient_email
-        msg["Subject"] = "Your OTP Code for Account Verification"
-        
         body = f"""
 Hello,
 
@@ -43,16 +25,22 @@ If you didn't request this code, please ignore this email.
 Best regards,
 Currency Exchange Team
         """
-        
-        msg.attach(MIMEText(body, "plain"))
-        
-        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
-        server.starttls()
-        server.login(SENDER_EMAIL, SENDER_PASSWORD)
-        server.send_message(msg)
-        server.quit()
-        
-        return True
+
+        data = {
+            "sender": {"name": SENDER_NAME, "email": SENDER_EMAIL},
+            "to": [{"email": recipient_email}],
+            "subject": "Your OTP Code for Account Verification",
+            "textContent": body
+        }
+
+        response = requests.post(
+            "https://api.brevo.com/v3/smtp/email",
+            headers={"api-key": BREVO_API_KEY, "Content-Type": "application/json"},
+            json=data
+        )
+
+        return response.status_code == 201
     except Exception as e:
         print(f"Error sending OTP email: {e}")
         return False
+
